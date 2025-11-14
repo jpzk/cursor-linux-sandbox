@@ -9,7 +9,7 @@ Cursor and all the agents that Cursor runs have full user-level access to your s
 ## Quick Start
 
 ### 1. Setup
-Place your Cursor AppImage in the `versions/` folder:
+Place your Cursor >= 2.0.77 AppImage in the `versions/` folder:
 ```bash
 mv Cursor-*.AppImage versions/
 ```
