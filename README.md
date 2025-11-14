@@ -1,9 +1,33 @@
+# Cursor Linux Sandbox
+
+## Why Sandbox Cursor?
+
+Cursor and all the agents that Cursor runs have full user-level access to your system. This means they can read, write, and execute files anywhere your user account has permissions. Using `bwrap` (Linux namespaces), we can limit that access to only what's necessary - your workspace folder and Cursor's own settings.
+
+## Quick Start
+
+### 1. Setup
+Place your Cursor AppImage in the `versions/` folder:
+```bash
+mv Cursor-*.AppImage versions/
+```
+
+### 2. Run the Sandbox
+```bash
+# Specify which version to run
+CURSOR_APPIMAGE=versions/Cursor-2.0.77-x86_64.AppImage WORKSPACE_DIR=/home/jendrik/repos ./cursor-sandbox.sh
+```
+
+The first run will extract the AppImage (one-time operation). Subsequent runs will be faster.
+
+---
+
 # Cursor Sandbox Permissions - Simple Explanation
 
 ## What Cursor CAN Access (Inside the Sandbox)
 
 ### ✅ Your Files
-- **Your workspace folder** (`/home/jendrik/repos/`) - Full read/write access
+- **Your workspace folder** (`/home/jpzk/repos/`) - Full read/write access
 - **Cursor's own settings** (`.cursor`, `.config/Cursor`, etc.) - Full read/write access
 
 ### ✅ System Resources (Read-Only)
