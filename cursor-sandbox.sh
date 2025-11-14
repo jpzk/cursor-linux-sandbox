@@ -5,8 +5,6 @@
 # This script runs Cursor AppImage in a bubblewrap sandbox with the actual
 # required permissions for an Electron-based IDE to function properly.
 #
-# Based on deep analysis of Cursor 1.1.3 AppImage internals.
-#
 
 set -e
 
