@@ -27,7 +27,7 @@ The first run will extract the AppImage (one-time operation). Subsequent runs wi
 
 # Cursor Sandbox Permissions - Simple Explanation
 
-## ✅What Cursor CAN Access (Inside the Sandbox)
+## ✅ What Cursor CAN Access (Inside the Sandbox)
 
 ### Your workspace and settings 
 - **Your workspace folder** (`/home/jpzk/repos/`) - Full read/write access
@@ -46,7 +46,7 @@ The first run will extract the AppImage (one-time operation). Subsequent runs wi
 
 ---
 
-## ❌What Cursor CANNOT Access (Outside the Sandbox)
+## ❌ What Cursor CANNOT Access (Outside the Sandbox)
 
 ### Your Other Files
 - **Home directory** - Cannot see files outside your workspace
