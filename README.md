@@ -2,7 +2,7 @@
 
 ## Why Sandbox Cursor?
 
-Cursor and all the agents that Cursor runs have full user-level access to your system. This means they can read, write, and execute files anywhere your user account has permissions. Using `bwrap` (Linux namespaces), we can limit that access to only what's necessary - your workspace folder and Cursor's own settings.
+Cursor and all the agents that Cursor runs have full user-level access to your system. This means they can read, write, and execute files anywhere your user account has permissions. Using `bwrap` (Linux namespaces), we can limit that access to only what's necessary - your workspace folder and Cursor's own settings. **It's not a silver bullet but makes running Cursor on Linux much safer**.
 
 ## Quick Start
 
@@ -14,8 +14,9 @@ mv Cursor-*.AppImage versions/
 
 ### 2. Run the Sandbox
 ```bash
-# Specify which version to run
-CURSOR_APPIMAGE=versions/Cursor-2.0.77-x86_64.AppImage WORKSPACE_DIR=/home/jendrik/repos ./cursor-sandbox.sh
+CURSOR_APPIMAGE=versions/Cursor-2.0.77-x86_64.AppImage \
+WORKSPACE_DIR=/home/jendrik/repos \  
+./cursor-sandbox.sh
 ```
 
 The first run will extract the AppImage (one-time operation). Subsequent runs will be faster.
@@ -24,38 +25,38 @@ The first run will extract the AppImage (one-time operation). Subsequent runs wi
 
 # Cursor Sandbox Permissions - Simple Explanation
 
-## What Cursor CAN Access (Inside the Sandbox)
+## ✅What Cursor CAN Access (Inside the Sandbox)
 
-### ✅ Your Files
+### Your workspace and settings 
 - **Your workspace folder** (`/home/jpzk/repos/`) - Full read/write access
 - **Cursor's own settings** (`.cursor`, `.config/Cursor`, etc.) - Full read/write access
 
-### ✅ System Resources (Read-Only)
+### System Resources (Read-Only)
 - **System programs** (`/usr`, `/bin`, `/lib`) - Can use but not modify
 - **Git config** (`.gitconfig`) - Can read your git settings
 - **SSH keys** (`.ssh`) - Can read for git authentication
 - **Internet** - Full network access
 
-### ✅ Hardware
+### Hardware
 - **Screen** (X11/Wayland) - Can display windows
 - **GPU** - Can use for rendering
 - **Audio** - Can play sounds
 
 ---
 
-## What Cursor CANNOT Access (Outside the Sandbox)
+## ❌What Cursor CANNOT Access (Outside the Sandbox)
 
-### ❌ Your Other Files
+### Your Other Files
 - **Home directory** - Cannot see files outside your workspace
 - **Documents, Downloads, Pictures** - Not accessible
 - **Other projects** - Only sees the workspace folder you specified
 
-### ❌ System Modifications
+### System Modifications
 - **Cannot install system packages** - No sudo/root access
 - **Cannot modify system files** - All system directories are read-only
 - **Cannot see other users** - Isolated from other user accounts
 
-### ❌ System Information
+### System Information
 - **Cannot see all running processes** - Only sees its own processes
 - **Cannot access other applications' data**
 - **Limited hardware information access**
