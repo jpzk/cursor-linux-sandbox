@@ -2,7 +2,9 @@
 
 ## Why Sandbox Cursor?
 
-Cursor and all the agents that Cursor runs have full user-level access to your system. This means they can read, write, and execute files anywhere your user account has permissions. Using `bwrap` (Linux namespaces), we can limit that access to only what's necessary - your workspace folder and Cursor's own settings. **It's not a silver bullet but makes running Cursor on Linux much safer**.
+Cursor and all the agents that Cursor runs have full user-level access to your system. This means they can read, write, and execute files anywhere your user account has permissions. Using `bwrap` (Linux namespaces), we can limit that access to only what's necessary - your workspace folder and Cursor's own settings. 
+
+**It's not a silver bullet but makes running Cursor on Linux much safer**.
 
 ## Quick Start
 
