@@ -37,6 +37,21 @@ WORKSPACE_DIR=$HOME/repos \
 
 The first run will extract the AppImage (one-time operation). Subsequent runs will be faster.
 
+### 4. Using Docker/Podman in Cursor Terminal
+
+Due to sandbox isolation, you must use the `--remote` flag to communicate with the Docker/Podman daemon running on the host system (outside the sandbox):
+
+```bash
+# Always use --remote flag
+docker --remote ps
+docker --remote build -t myimage .
+docker --remote run -it ubuntu bash
+
+podman --remote ps
+podman --remote images
+podman --remote start <container>
+```
+
 ### Troubleshooting
 
 **Cursor doesn't start?**
@@ -52,6 +67,11 @@ The first run will extract the AppImage (one-time operation). Subsequent runs wi
 **Permission errors?**
 - Ensure you have read/write access to the workspace directory
 - Check Cursor config directories exist: `~/.cursor`, `~/.config/Cursor`, etc.
+
+**Docker/Podman not working?**
+- Always use the `--remote` flag: `docker --remote ps` or `podman --remote ps`
+- Verify the daemon is running on the host (outside sandbox)
+- Check the socket exists: `ls -la /run/user/$(id -u)/podman/podman.sock`
 
 ---
 
@@ -107,3 +127,20 @@ The first run will extract the AppImage (one-time operation). Subsequent runs wi
 - Cannot modify your system
 - Cannot see what else is running on your computer
 - If compromised, damage is limited to your workspace folder
+
+---
+
+## Docker/Podman Integration
+
+The sandbox provides access to your host's Podman/Docker containers via the API socket. This allows you to:
+- List, inspect, and manage containers
+- Run containers (they run on the host, not in the sandbox)
+- Use docker-compose/podman-compose
+
+**How it works:**
+1. The sandbox mounts your Podman socket (`/run/user/$(id -u)/podman/podman.sock`)
+2. Podman commands use `--remote` flag to communicate via the API
+3. Containers are created/managed on the host system (outside the sandbox)
+4. The sandbox cannot create its own isolated containers (user namespace limitation)
+
+**Security note:** Containers you create will run on the host with your full user permissions, not limited by the sandbox.

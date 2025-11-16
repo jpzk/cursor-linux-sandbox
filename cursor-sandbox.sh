@@ -192,10 +192,14 @@ bwrap \
   \
   `# Podman/Docker socket for container management` \
   --bind-try "/run/user/$USER_ID/podman" "/run/user/$USER_ID/podman" \
+  --bind-try "/run/user/$USER_ID/containers" "/run/user/$USER_ID/containers" \
   \
   `# Container configuration` \
   --ro-bind-try "$HOME/.config/containers" "$HOME/.config/containers" \
   --ro-bind-try "/etc/containers" "/etc/containers" \
+  \
+  `# Podman storage (read-only for safety - allows listing/inspecting containers)` \
+  --ro-bind-try "$HOME/.local/share/containers" "$HOME/.local/share/containers" \
   \
   `# Cursor configuration and data directories (read-write)` \
   --bind "$HOME/.cursor" "$HOME/.cursor" \
@@ -234,6 +238,7 @@ bwrap \
   --setenv SHELL "${SHELL:-/bin/bash}" \
   --setenv TERM "${TERM:-xterm-256color}" \
   --setenv DOCKER_HOST "${DOCKER_HOST:-unix:///run/user/$USER_ID/podman/podman.sock}" \
+  --setenv CONTAINER_HOST "unix:///run/user/$USER_ID/podman/podman.sock" \
   \
   `# Electron/Chromium variables` \
   --setenv ELECTRON_TRASH "gio" \
