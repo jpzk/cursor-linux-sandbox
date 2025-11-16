@@ -8,20 +8,50 @@ Cursor and all the agents that Cursor runs have full user-level access to your s
 
 ## Quick Start
 
-### 1. Setup
+### 1. Prerequisites
+Install bubblewrap (bwrap):
+```bash
+# Fedora/RHEL
+sudo dnf install bubblewrap
+
+# Debian/Ubuntu
+sudo apt install bubblewrap
+
+# Arch Linux
+sudo pacman -S bubblewrap
+```
+
+### 2. Setup
 Place your Cursor >= 2.0.77 AppImage in the `versions/` folder:
 ```bash
 mv Cursor-*.AppImage versions/
 ```
 
-### 2. Run the Sandbox
+### 3. Run the Sandbox
 ```bash
+# Set the AppImage path and workspace directory
 CURSOR_APPIMAGE=versions/Cursor-2.0.77-x86_64.AppImage \
-WORKSPACE_DIR=/home/jendrik/repos \  
+WORKSPACE_DIR=$HOME/repos \  
 ./cursor-sandbox.sh
 ```
 
 The first run will extract the AppImage (one-time operation). Subsequent runs will be faster.
+
+### Troubleshooting
+
+**Cursor doesn't start?**
+- Check that bubblewrap is installed: `bwrap --version`
+- Ensure the AppImage path is correct
+- Check that your workspace directory exists
+- Look for error messages in the terminal output
+
+**Display issues on Wayland?**
+- Ensure `WAYLAND_DISPLAY` environment variable is set
+- Check that the Wayland socket exists: `ls -la $XDG_RUNTIME_DIR/wayland-*`
+
+**Permission errors?**
+- Ensure you have read/write access to the workspace directory
+- Check Cursor config directories exist: `~/.cursor`, `~/.config/Cursor`, etc.
 
 ---
 

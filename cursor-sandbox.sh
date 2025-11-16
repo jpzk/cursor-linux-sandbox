@@ -48,6 +48,9 @@ chmod +x "$CURSOR_APPIMAGE"
 echo "Starting Cursor in sandboxed environment..."
 echo "AppImage: $CURSOR_APPIMAGE"
 echo "Workspace: $WORKSPACE_DIR"
+echo "User ID: $USER_ID"
+echo "User GID: $USER_GID"
+echo ""
 
 # Convert AppImage path to absolute path if relative
 if [[ "$CURSOR_APPIMAGE" != /* ]]; then
@@ -70,8 +73,46 @@ fi
 
 CURSOR_BINARY="$APPIMAGE_EXTRACTED_DIR/AppRun"
 
+echo "Checking critical paths..."
+echo "  Cursor binary: $CURSOR_BINARY"
+[ -f "$CURSOR_BINARY" ] && echo "    ✓ Binary exists" || echo "    ✗ Binary NOT found!"
+[ -d "$HOME/.cursor" ] && echo "    ✓ .cursor dir exists" || echo "    ✗ .cursor dir missing"
+[ -d "$WORKSPACE_DIR" ] && echo "    ✓ Workspace exists" || echo "    ✗ Workspace missing"
+
+echo ""
+echo "Checking Podman/Docker socket..."
+if [ -S "/run/user/$USER_ID/podman/podman.sock" ]; then
+    echo "    ✓ Podman socket found: /run/user/$USER_ID/podman/podman.sock"
+elif [ -S "/var/run/docker.sock" ]; then
+    echo "    ✓ Docker socket found: /var/run/docker.sock"
+else
+    echo "    ⚠ No Podman/Docker socket found (containers may not work)"
+fi
+
+echo ""
+echo "Environment check:"
+echo "  DISPLAY: ${DISPLAY:-not set}"
+echo "  WAYLAND_DISPLAY: ${WAYLAND_DISPLAY:-not set}"
+echo "  XDG_SESSION_TYPE: ${XDG_SESSION_TYPE:-not set}"
+echo "  XDG_RUNTIME_DIR: ${XDG_RUNTIME_DIR:-not set}"
+if [ -n "$WAYLAND_DISPLAY" ] && [ -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then
+    echo "    ✓ Wayland socket exists: $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
+elif [ -n "$DISPLAY" ]; then
+    echo "    ✓ Using X11 display: $DISPLAY"
+else
+    echo "    ⚠ No display configured!"
+fi
+echo ""
+echo "Launching bwrap sandbox..."
+echo "If Cursor doesn't start, check for errors below:"
+echo "================================================"
+echo ""
+
 # Launch Cursor with bwrap
-exec bwrap \
+set -x  # Enable command tracing to see exact bwrap command
+
+# Don't use exec so we can catch errors
+bwrap \
   `# Namespace isolation` \
   --unshare-all \
   --share-net \
@@ -82,7 +123,6 @@ exec bwrap \
   --proc /proc \
   --dev /dev \
   --tmpfs /tmp \
-  --tmpfs /run \
   --tmpfs /dev/shm \
   \
   `# GPU and audio device access` \
@@ -132,16 +172,30 @@ exec bwrap \
   --ro-bind-try /tmp/.X11-unix /tmp/.X11-unix \
   --ro-bind-try "${XAUTHORITY:-$HOME/.Xauthority}" "${XAUTHORITY:-$HOME/.Xauthority}" \
   \
-  `# Wayland socket (if applicable)` \
-  --ro-bind-try "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" 2>/dev/null \
-  \
-  `# D-Bus session bus` \
-  --ro-bind-try "/run/user/$USER_ID/bus" "/run/user/$USER_ID/bus" \
-  --bind-try "/run/user/$USER_ID/dbus-1" "/run/user/$USER_ID/dbus-1" \
-  \
-  `# Create user runtime directory` \
+  `# Create /run tmpfs and user runtime directory FIRST` \
+  --tmpfs /run \
   --dir "/run/user/$USER_ID" \
   --setenv XDG_RUNTIME_DIR "/run/user/$USER_ID" \
+  \
+  `# Create /var and symlink /var/run to /run` \
+  --dir /var \
+  --symlink ../run /var/run \
+  \
+  `# Wayland socket (if applicable)` \
+  --ro-bind-try "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" "/run/user/$USER_ID/$WAYLAND_DISPLAY" \
+  \
+  `# D-Bus session and system bus` \
+  --ro-bind-try "/run/user/$USER_ID/bus" "/run/user/$USER_ID/bus" \
+  --bind-try "/run/user/$USER_ID/dbus-1" "/run/user/$USER_ID/dbus-1" \
+  --dir /run/dbus \
+  --ro-bind-try "/run/dbus/system_bus_socket" "/run/dbus/system_bus_socket" \
+  \
+  `# Podman/Docker socket for container management` \
+  --bind-try "/run/user/$USER_ID/podman" "/run/user/$USER_ID/podman" \
+  \
+  `# Container configuration` \
+  --ro-bind-try "$HOME/.config/containers" "$HOME/.config/containers" \
+  --ro-bind-try "/etc/containers" "/etc/containers" \
   \
   `# Cursor configuration and data directories (read-write)` \
   --bind "$HOME/.cursor" "$HOME/.cursor" \
@@ -179,12 +233,28 @@ exec bwrap \
   --setenv PATH "/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin" \
   --setenv SHELL "${SHELL:-/bin/bash}" \
   --setenv TERM "${TERM:-xterm-256color}" \
+  --setenv DOCKER_HOST "${DOCKER_HOST:-unix:///run/user/$USER_ID/podman/podman.sock}" \
   \
   `# Electron/Chromium variables` \
   --setenv ELECTRON_TRASH "gio" \
+  --setenv WAYLAND_DISPLAY "${WAYLAND_DISPLAY:-wayland-1}" \
   \
   `# Bind the extracted AppImage directory` \
   --ro-bind "$APPIMAGE_EXTRACTED_DIR" "$APPIMAGE_EXTRACTED_DIR" \
   \
   `# Run the extracted binary` \
   "$CURSOR_BINARY" "$@"
+
+EXIT_CODE=$?
+echo ""
+echo "================================================"
+if [ $EXIT_CODE -eq 0 ]; then
+    echo "Cursor exited normally (code: $EXIT_CODE)"
+else
+    echo "ERROR: Cursor exited with code: $EXIT_CODE"
+    echo "Common issues:"
+    echo "  - Check if bwrap has permission issues"
+    echo "  - Try running: journalctl --user -xe"
+    echo "  - Check /tmp for core dumps"
+fi
+exit $EXIT_CODE
