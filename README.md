@@ -4,7 +4,7 @@
 
 Cursor and all the agents that Cursor runs have full user-level access to your system. This means they can read, write, and execute files anywhere your user account has permissions. Using `bwrap` (Linux namespaces), we can limit that access to only what's necessary - your workspace folder and Cursor's own settings. 
 
-**It's not a silver bullet, it compartmentalizes Cursor from the system hence adding another layer of defense.**
+**It's not a silver bullet, it compartmentalizes Cursor from the system hence adding another layer of defense.** A viable alternative is running cursor and other agent frameworks inside a kernel-based virtual machine (KVM) and SSH'ing into it as a development environment.
 
 ## Quick Start
 
