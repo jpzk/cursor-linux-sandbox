@@ -6,7 +6,8 @@ Cursor and all the agents that Cursor runs have full (read, with auto [run in sa
 
 ## LLM attacks
 
-[Trust No AI: Prompt Injection Along The CIA Security Triad](https://arxiv.org/pdf/2412.06090)
+- [Trust No AI: Prompt Injection Along The CIA Security Triad](https://arxiv.org/pdf/2412.06090)
+- [Agentic ProbLLMs: Exploiting AI Computer-Use and Coding Agents - Johann Rehberger @ 39C39](https://media.ccc.de/v/39c3-agentic-probllms-exploiting-ai-computer-use-and-coding-agents)
 
 ## It's not a silver bullet.
 
